@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug History</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .navbar .logo {
+            color: #e94560;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .navbar .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .navbar a.home-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .navbar a.home-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .navbar a.logout-btn {
+            background: #e94560;
+        }
+        .navbar a.logout-btn:hover {
+            background: #c73652;
+        }
+        .main {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .hero h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        .hero h1 span {
+            color: #e94560;
+        }
+        .hero p {
+            color: #aaa;
+            font-size: 15px;
+        }
+        .empty {
+            text-align: center;
+            color: #aaa;
+            padding: 60px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .empty h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .bug-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: border 0.3s;
+        }
+        .bug-card:hover {
+            border: 1px solid rgba(233, 69, 96, 0.4);
+        }
+        .bug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .language-badge {
+            background: #e94560;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .date {
+            color: #aaa;
+            font-size: 12px;
+        }
+        .bug-code {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #ddd;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .bug-explanation {
+            color: #ddd;
+            line-height: 1.7;
+            font-size: 14px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 15px;
+        }
+        .bug-explanation strong {
+            color: #e94560;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">🐛 Bug Explainer</div>
+        <div class="nav-links">
+            <span style="color:#aaa; font-size:14px;">👋 {{ username }}</span>
+            <a href="/" class="home-btn">🏠 Home</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="hero">
+            <h1>Your <span>Bug History</span></h1>
+            <p>All your previously explained bugs in one place</p>
+        </div>
+
+        {% if bugs %}
+            {% for bug in bugs %}
+            <div class="bug-card">
+                <div class="bug-header">
+                    <span class="language-badge">{{ bug[0] }}</span>
+                    <span class="date">🕐 {{ bug[3] }}</span>
+                </div>
+                <div class="bug-code">{{ bug[1] }}</div>
+                <div class="bug-explanation">
+                    <strong>🧠 AI Explanation:</strong><br><br>
+                    {{ bug[2] }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <h2>No bugs explained yet!</h2>
+                <p>Go back home and paste your first buggy code 🐛</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
