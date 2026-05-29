@@ -162,13 +162,10 @@
             {% for bug in bugs %}
             <div class="bug-card">
                 <div class="bug-header">
-                    <span class="language-badge">{{ bug[0] }}</span>
-                    <span class="date">🕐 {{ bug[3] }}</span>
-                </div>
-                <div class="bug-code">{{ bug[1] }}</div>
-                <div class="bug-explanation">
-                    <strong>🧠 AI Explanation:</strong><br><br>
-                    {{ bug[2] }}
+                   <span class="language-badge">{{ bug.language }}</span>
+<span class="date">🕐 {{ bug.created_at }}</span>
+<div class="bug-code">{{ bug.code }}</div>
+{{ bug.explanation }}
                 </div>
             </div>
             {% endfor %}
