@@ -349,7 +349,8 @@ def explain():
             'Content-Type': 'application/json'
         },
         json={
-            'model': 'meta-llama/llama-3.2-3b-instruct:free',
+            'model': 'meta-llama/llama-3.2-3b-instruct:fee',
+            # 'model':'mistralai/mistral-small-3.1-24b-instruct:fee',
             'max_tokens': 1000,
             'messages': [
                 {
@@ -357,7 +358,7 @@ def explain():
                     'content': [
                         {
                             'type': 'text',
-                            'text': f'You are a coding expert helping a beginner. Analyze this {language} code carefully and provide a COMPLETE explanation including: 1) What the bug is 2) Which line has the bug 3) Why it is a bug 4) How to fix it with corrected code. Always finish your complete explanation:\n\n{code}'
+                            'text':f'You are a coding expert helping a beginner. Analyze this {language} code carefully and provide a COMPLETE explanation including: 1) What the bug is 2) which line has thebug 3) why it is a bug 4) How to fix it with corrected code 5) and also give a additional example of same type also. Always finish your complete explanation:\n\n{code}'
                         }
                     ]
                 }

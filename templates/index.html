@@ -255,7 +255,12 @@
 
             loading.style.display = 'none';
             resultCard.style.display = 'block';
-            explanation.innerText = data.explanation;
+        let text = data.explanation;
+text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre class="code-block">$1</pre>');
+text = text.replace(/\n\n/g, '</p><p>');
+text = text.replace(/\n/g, '<br>');
+explanation.innerHTML = '<p>' + text + '</p>';
             btn.disabled = false;
             btn.innerText = '🔍 Explain My Bug';
         }
