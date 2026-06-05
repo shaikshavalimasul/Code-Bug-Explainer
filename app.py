@@ -247,9 +247,6 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-with app.app_context():
-        db.create_all()
-
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 class User(db.Model):
@@ -269,6 +266,9 @@ class Bug(db.Model):
     explanation = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+with app.app_context():
+        db.create_all()
 
 def login_required(f):
     @wraps(f)
