@@ -228,6 +228,7 @@ import requests
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from collections import Counter
 from datetime import datetime
 
 load_dotenv()
@@ -388,6 +389,39 @@ def explain():
 def history():
     bugs = Bug.query.filter_by(user_id=session['user_id']).order_by(Bug.created_at.desc()).all()
     return render_template('history.html', bugs=bugs, username=session['username'])
+
+@app.route('/statistics')
+@login_required
+def statistics():
+    bugs = Bug.query.filter_by(user_id=session['user_id']).all()
+    
+    if not bugs:
+        return render_template('statistics.html', 
+            username=session['username'],
+            total=0,
+            language_stats=[])
+    
+    languages = [bug.language for bug in bugs]
+    total = len(languages)
+    frequency = Counter(languages)
+    frequency_sorted = sorted(frequency.items(), key=lambda x: x[1], reverse=True)
+    
+    language_stats = []
+    for language, count in frequency_sorted:
+        percentage = round((count / total) * 100, 1)
+        language_stats.append({
+            'language': language,
+            'count': count,
+            'percentage': percentage
+        })
+    
+    most_common = language_stats[0]['language']
+    
+    return render_template('statistics.html',
+        username=session['username'],
+        total=total,
+        language_stats=language_stats,
+        most_common=most_common)
 
 if __name__ == '__main__':
     app.run(debug=True)
