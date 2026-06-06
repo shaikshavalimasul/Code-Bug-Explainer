@@ -423,5 +423,61 @@ def statistics():
         language_stats=language_stats,
         most_common=most_common)
 
+@app.route('/search')
+@login_required
+def search():
+    query = request.args.get('language', '').lower()
+    bugs = Bug.query.filter_by(
+        user_id=session['user_id']
+    ).order_by(Bug.language).all()
+
+    if not query:
+        return render_template('history.html',
+            bugs=bugs,
+            username=session['username'],
+            search_query='')
+
+    languages = [bug.language.lower() for bug in bugs]
+    found_index = -1
+    left = 0
+    right = len(languages) - 1
+
+    while left <= right:
+        middle = (left + right) // 2
+        if languages[middle] == query:
+            found_index = middle
+            break
+        elif languages[middle] < query:
+            left = middle + 1
+        else:
+            right = middle - 1
+
+    if found_index == -1:
+        return render_template('history.html',
+            bugs=[],
+            username=session['username'],
+            search_query=query,
+            not_found=True)
+
+    result_indices = [found_index]
+
+    i = found_index - 1
+    while i >= 0 and languages[i] == query:
+        result_indices.append(i)
+        i -= 1
+
+    i = found_index + 1
+    while i < len(languages) and languages[i] == query:
+        result_indices.append(i)
+        i += 1
+
+    result_bugs = [bugs[i] for i in result_indices]
+
+    return render_template('history.html',
+        bugs=result_bugs,
+        username=session['username'],
+        search_query=query,
+        not_found=False)        
+
 if __name__ == '__main__':
     app.run(debug=True)

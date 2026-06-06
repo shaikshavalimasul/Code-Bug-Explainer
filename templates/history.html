@@ -167,6 +167,56 @@
     scrollbar-width: thin;
     scrollbar-color: #e94560 transparent;
 }
+
+.search-box {
+    margin-bottom: 30px;
+}
+.search-box form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.search-box input {
+    flex: 1;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.3s;
+}
+.search-box input:focus {
+    border: 1px solid #e94560;
+}
+.search-box button {
+    padding: 12px 25px;
+    background: #e94560;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+.search-box button:hover {
+    background: #c73652;
+}
+.clear-btn {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 13px;
+}
+.clear-btn:hover {
+    color: #e94560;
+}
+.not-found {
+    color: #e94560;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
     </style>
 </head>
 <body>
@@ -176,15 +226,34 @@
         <div class="nav-links">
             <span style="color:#aaa; font-size:14px;">👋 {{ username }}</span>
             <a href="/" class="home-btn">🏠 Home</a>
+            <a href="/statistics" class="home-btn">📊 Statistics</a>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </nav>
 
     <div class="main">
-        <div class="hero">
-            <h1>Your <span>Bug History</span></h1>
-            <p>All your previously explained bugs in one place</p>
-        </div>
+       <div class="hero">
+    <h1>Your <span>Bug History</span></h1>
+    <p>All your previously explained bugs in one place</p>
+</div>
+
+<div class="search-box">
+    <form action="/search" method="GET">
+        <input 
+            type="text" 
+            name="language" 
+            placeholder="Search by language (python, java, c++...)"
+            value="{{ search_query if search_query else '' }}"
+        >
+        <button type="submit">🔍 Search</button>
+    </form>
+    {% if search_query %}
+        <a href="/history" class="clear-btn">✖ Clear Search</a>
+    {% endif %}
+    {% if not_found %}
+        <p class="not-found">No bugs found for "{{ search_query }}"!</p>
+    {% endif %}
+</div>
 
         {% if bugs %}
            {% for bug in bugs %}
