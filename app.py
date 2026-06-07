@@ -271,6 +271,45 @@ class Bug(db.Model):
 with app.app_context():
         db.create_all()
 
+def levenshtein_distance(s1, s2):
+    rows = len(s1) + 1
+    cols = len(s2) + 1
+
+    matrix = []
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            row.append(0)
+        matrix.append(row)
+
+    for i in range(rows):
+        matrix[i][0] = i
+    for j in range(cols):
+        matrix[0][j] = j
+
+    for i in range(1, rows):
+        for j in range(1, cols):
+            if s1[i-1] == s2[j-1]:
+                matrix[i][j] = matrix[i-1][j-1]
+            else:
+                top = matrix[i-1][j]
+                left = matrix[i][j-1]
+                diagonal = matrix[i-1][j-1]
+                matrix[i][j] = 1 + min(top, left, diagonal)
+
+    return matrix[rows-1][cols-1]
+
+
+def similarity_percentage(s1, s2):
+    distance = levenshtein_distance(s1, s2)
+    max_length = max(len(s1), len(s2))
+    if max_length == 0:
+        return 100
+    similarity = (1 - distance/max_length) * 100
+    return round(similarity, 2)
+
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -346,6 +385,20 @@ def explain():
     data = request.get_json()
     code = data.get('code')
     language = data.get('language')
+
+    previous_bugs = Bug.query.filter_by(
+        user_id=session['user_id']
+    ).all()
+
+    for prev_bug in previous_bugs:
+        similarity = similarity_percentage(code, prev_bug.code)
+        if similarity >= 80:
+            return jsonify({
+                'explanation': prev_bug.explanation,
+                'duplicate': True,
+                'similarity': similarity
+            })
+
     response = requests.post(
         'https://openrouter.ai/api/v1/chat/completions',
         headers={
@@ -354,7 +407,6 @@ def explain():
         },
         json={
             'model': 'meta-llama/llama-3.2-3b-instruct:fee',
-            # 'model':'mistralai/mistral-small-3.1-24b-instruct:fee',
             'max_tokens': 1000,
             'messages': [
                 {
@@ -362,7 +414,7 @@ def explain():
                     'content': [
                         {
                             'type': 'text',
-                            'text':f'You are a coding expert helping a beginner. Analyze this {language} code carefully and provide a COMPLETE explanation including: 1) What the bug is 2) which line has thebug 3) why it is a bug 4) How to fix it with corrected code 5) and also give a additional example of same type also. Always finish your complete explanation:\n\n{code}'
+                            'text': f'You are a coding expert helping a beginner. Analyze this {language} code carefully and provide a COMPLETE explanation including: 1) What the bug is 2) Which line has the bug 3) Why it is a bug 4) How to fix it with corrected code. Always finish your complete explanation:\n\n{code}'
                         }
                     ]
                 }
@@ -374,6 +426,7 @@ def explain():
         explanation = result['choices'][0]['message']['content']
     else:
         explanation = str(result)
+
     new_bug = Bug(
         language=language,
         code=code,
@@ -382,7 +435,12 @@ def explain():
     )
     db.session.add(new_bug)
     db.session.commit()
-    return jsonify({'explanation': explanation})
+
+    return jsonify({
+        'explanation': explanation,
+        'duplicate': False,
+        'similarity': 0
+    })
 
 @app.route('/history')
 @login_required

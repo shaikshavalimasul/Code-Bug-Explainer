@@ -252,18 +252,31 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({code: code, language: language})
             });
-            const data = await response.json();
+           const data = await response.json();
 
-            loading.style.display = 'none';
-            resultCard.style.display = 'block';
-        let text = data.explanation;
+loading.style.display = 'none';
+resultCard.style.display = 'block';
+
+if (data.duplicate) {
+    resultCard.style.border = '1px solid #f39c12';
+    document.querySelector('.result-card h2').innerHTML = 
+        '⚠️ Similar Bug Found! (' + data.similarity + '% match)';
+} else {
+    resultCard.style.border = '1px solid rgba(233, 69, 96, 0.3)';
+    document.querySelector('.result-card h2').innerHTML = 
+        '🧠 AI Explanation';
+}
+
+let text = data.explanation;
 text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre class="code-block">$1</pre>');
+text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, 
+    '<pre class="code-block">$1</pre>');
 text = text.replace(/\n\n/g, '</p><p>');
 text = text.replace(/\n/g, '<br>');
 explanation.innerHTML = '<p>' + text + '</p>';
-            btn.disabled = false;
-            btn.innerText = '🔍 Explain My Bug';
+
+btn.disabled = false;
+btn.innerText = '🔍 Explain My Bug';
         }
     </script>
 </body>
