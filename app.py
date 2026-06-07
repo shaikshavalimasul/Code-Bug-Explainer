@@ -442,6 +442,53 @@ def explain():
         'similarity': 0
     })
 
+
+@app.route('/explain_fresh', methods=['POST'])
+@login_required
+def explain_fresh():
+    data = request.get_json()
+    code = data.get('code')
+    language = data.get('language')
+
+    response = requests.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        headers={
+            'Authorization': f'Bearer {OPENROUTER_API_KEY}',
+            'Content-Type': 'application/json'
+        },
+        json={
+            'model': 'meta-llama/llama-3.2-3b-instruct:fee',
+            'max_tokens': 1000,
+            'messages': [
+                {
+                    'role': 'user',
+                    'content': [
+                        {
+                            'type': 'text',
+                            'text': f'You are a coding expert helping a beginner. Analyze this {language} code carefully and provide a COMPLETE explanation including: 1) What the bug is 2) Which line has the bug 3) Why it is a bug 4) How to fix it with corrected code. Always finish your complete explanation:\n\n{code}'
+                        }
+                    ]
+                }
+            ]
+        }
+    )
+    result = response.json()
+    if 'choices' in result:
+        explanation = result['choices'][0]['message']['content']
+    else:
+        explanation = str(result)
+
+    new_bug = Bug(
+        language=language,
+        code=code,
+        explanation=explanation,
+        user_id=session['user_id']
+    )
+    db.session.add(new_bug)
+    db.session.commit()
+
+    return jsonify({'explanation': explanation})
+
 @app.route('/history')
 @login_required
 def history():

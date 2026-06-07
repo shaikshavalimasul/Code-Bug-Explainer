@@ -228,56 +228,140 @@
         </div>
     </div>
 
-    <script>
-        async function explainBug() {
-            const code = document.getElementById('code').value;
-            const language = document.getElementById('language').value;
-            const resultCard = document.getElementById('result');
-            const explanation = document.getElementById('explanation');
-            const loading = document.getElementById('loading');
-            const btn = document.querySelector('.explain-btn');
+   <script>
+    async function explainBug() {
+        const code = document.getElementById('code').value;
+        const language = document.getElementById('language').value;
+        const resultCard = document.getElementById('result');
+        const explanation = document.getElementById('explanation');
+        const loading = document.getElementById('loading');
+        const btn = document.querySelector('.explain-btn');
 
-            if (!code.trim()) {
-                alert('Please paste your buggy code first!');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = 'Analyzing...';
-            loading.style.display = 'block';
-            resultCard.style.display = 'none';
-
-            const response = await fetch('/explain', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({code: code, language: language})
-            });
-           const data = await response.json();
-
-loading.style.display = 'none';
-resultCard.style.display = 'block';
-
-if (data.duplicate) {
-    resultCard.style.border = '1px solid #f39c12';
-    document.querySelector('.result-card h2').innerHTML = 
-        '⚠️ Similar Bug Found! (' + data.similarity + '% match)';
-} else {
-    resultCard.style.border = '1px solid rgba(233, 69, 96, 0.3)';
-    document.querySelector('.result-card h2').innerHTML = 
-        '🧠 AI Explanation';
-}
-
-let text = data.explanation;
-text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, 
-    '<pre class="code-block">$1</pre>');
-text = text.replace(/\n\n/g, '</p><p>');
-text = text.replace(/\n/g, '<br>');
-explanation.innerHTML = '<p>' + text + '</p>';
-
-btn.disabled = false;
-btn.innerText = '🔍 Explain My Bug';
+        if (!code.trim()) {
+            alert('Please paste your buggy code first!');
+            return;
         }
-    </script>
+
+        btn.disabled = true;
+        btn.innerText = 'Analyzing...';
+        loading.style.display = 'block';
+        resultCard.style.display = 'none';
+
+        const response = await fetch('/explain', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({code: code, language: language})
+        });
+
+        const data = await response.json();
+
+        loading.style.display = 'none';
+        resultCard.style.display = 'block';
+
+        if (data.duplicate) {
+            resultCard.style.border = '1px solid #f39c12';
+            document.querySelector('.result-card h2').innerHTML =
+                '⚠️ Similar Bug Found! (' + data.similarity + '% match)';
+
+            explanation.innerHTML = `
+                <p style="color:#aaa; margin-bottom:15px;">
+                    We found a similar bug in your history!
+                    What would you like to do?
+                </p>
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <button onclick="showPreviousExplanation()" 
+                        style="flex:1; padding:12px; background:rgba(243,156,18,0.2); 
+                        border:1px solid #f39c12; color:#f39c12; border-radius:10px; 
+                        cursor:pointer; font-size:14px;">
+                        ✅ Use Previous Explanation
+                    </button>
+                    <button onclick="getFreshExplanation()" 
+                        style="flex:1; padding:12px; background:rgba(233,69,96,0.2); 
+                        border:1px solid #e94560; color:#e94560; border-radius:10px; 
+                        cursor:pointer; font-size:14px;">
+                        🔄 Get Fresh Explanation
+                    </button>
+                </div>
+            `;
+
+            window._previousExplanation = data.explanation;
+            window._currentCode = document.getElementById('code').value;
+            window._currentLanguage = document.getElementById('language').value;
+
+        } else {
+            resultCard.style.border = '1px solid rgba(233, 69, 96, 0.3)';
+            document.querySelector('.result-card h2').innerHTML = '🧠 AI Explanation';
+
+            let text = data.explanation;
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/```[\w]*\n?([\s\S]*?)```/g,
+                '<pre class="code-block">$1</pre>');
+            text = text.replace(/\n\n/g, '</p><p>');
+            text = text.replace(/\n/g, '<br>');
+            explanation.innerHTML = '<p>' + text + '</p>';
+        }
+
+        btn.disabled = false;
+        btn.innerText = '🔍 Explain My Bug';
+    }
+
+    function showPreviousExplanation() {
+        const explanation = document.getElementById('explanation');
+        const resultCard = document.getElementById('result');
+
+        resultCard.style.border = '1px solid #f39c12';
+        document.querySelector('.result-card h2').innerHTML =
+            '✅ Previous Explanation';
+
+        let text = window._previousExplanation;
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/```[\w]*\n?([\s\S]*?)```/g,
+            '<pre class="code-block">$1</pre>');
+        text = text.replace(/\n\n/g, '</p><p>');
+        text = text.replace(/\n/g, '<br>');
+        explanation.innerHTML = '<p>' + text + '</p>';
+    }
+
+    async function getFreshExplanation() {
+        const explanation = document.getElementById('explanation');
+        const resultCard = document.getElementById('result');
+        const loading = document.getElementById('loading');
+        const btn = document.querySelector('.explain-btn');
+
+        explanation.innerHTML = '';
+        resultCard.style.display = 'none';
+        loading.style.display = 'block';
+        btn.disabled = true;
+        btn.innerText = 'Analyzing...';
+
+        const response = await fetch('/explain_fresh', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                code: window._currentCode,
+                language: window._currentLanguage
+            })
+        });
+
+        const data = await response.json();
+
+        loading.style.display = 'none';
+        resultCard.style.display = 'block';
+        resultCard.style.border = '1px solid rgba(233, 69, 96, 0.3)';
+        document.querySelector('.result-card h2').innerHTML = 
+            '🧠 Fresh AI Explanation';
+
+        let text = data.explanation;
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/```[\w]*\n?([\s\S]*?)```/g,
+            '<pre class="code-block">$1</pre>');
+        text = text.replace(/\n\n/g, '</p><p>');
+        text = text.replace(/\n/g, '<br>');
+        explanation.innerHTML = '<p>' + text + '</p>';
+
+        btn.disabled = false;
+        btn.innerText = '🔍 Explain My Bug';
+    }
+</script>
 </body>
 </html>
