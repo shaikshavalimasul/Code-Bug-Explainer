@@ -160,6 +160,26 @@
             background: rgba(255,255,255,0.05);
             border-radius: 20px;
         }
+
+        .difficulty-row {
+    margin-bottom: 20px;
+}
+.difficulty-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: #ddd;
+    font-size: 14px;
+}
+.easy-fill {
+    background: linear-gradient(90deg, #27ae60, #2ecc71) !important;
+}
+.medium-fill {
+    background: linear-gradient(90deg, #f39c12, #f1c40f) !important;
+}
+.hard-fill {
+    background: linear-gradient(90deg, #e74c3c, #c0392b) !important;
+}
     </style>
 </head>
 <body>
@@ -217,6 +237,39 @@
 </div>
             {% endfor %}
         </div>
+        <div class="language-card">
+    <h2>🎯 Bug Difficulty Distribution</h2>
+    <div class="difficulty-row">
+        <div class="difficulty-info">
+            <span>🟢 Easy</span>
+            <span>{{ difficulty_stats.Easy }} bugs</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill easy-fill" 
+                id="easy-bar"></div>
+        </div>
+    </div>
+    <div class="difficulty-row">
+        <div class="difficulty-info">
+            <span>🟡 Medium</span>
+            <span>{{ difficulty_stats.Medium }} bugs</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill medium-fill" 
+                id="medium-bar"></div>
+        </div>
+    </div>
+    <div class="difficulty-row">
+        <div class="difficulty-info">
+            <span>🔴 Hard</span>
+            <span>{{ difficulty_stats.Hard }} bugs</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill hard-fill" 
+                id="hard-bar"></div>
+        </div>
+    </div>
+</div>
 
         {% endif %}
     </div>
@@ -224,6 +277,14 @@
     {% for stat in language_stats %} 
     document.getElementById('bar-{{ loop.index }}').style.width = '{{ stat.percentage }}%';
     {% endfor %}
+    {% if total > 0 %}
+document.getElementById('easy-bar').style.width = 
+    '{{ ((difficulty_stats.Easy / total) * 100) | round(1) }}%';
+document.getElementById('medium-bar').style.width = 
+    '{{ ((difficulty_stats.Medium / total) * 100) | round(1) }}%';
+document.getElementById('hard-bar').style.width = 
+    '{{ ((difficulty_stats.Hard / total) * 100) | round(1) }}%';
+{% endif %}
 </script>
 </body>
 </html>

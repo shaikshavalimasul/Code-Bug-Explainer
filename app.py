@@ -229,6 +229,8 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from collections import Counter
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+analyzer = SentimentIntensityAnalyzer()
 from datetime import datetime
 
 load_dotenv()
@@ -265,6 +267,7 @@ class Bug(db.Model):
     language = db.Column(db.String(50))
     code = db.Column(db.Text)
     explanation = db.Column(db.Text)
+    difficulty = db.Column(db.String(20), default='Medium')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
@@ -308,6 +311,17 @@ def similarity_percentage(s1, s2):
     similarity = (1 - distance/max_length) * 100
     return round(similarity, 2)
 
+
+def analyze_difficulty(explanation):
+    scores = analyzer.polarity_scores(explanation)
+    compound = scores['compound']
+    
+    if compound >= 0.5:
+        return 'Easy', '🟢'
+    elif compound >= 0.0:
+        return 'Medium', '🟡'
+    else:
+        return 'Hard', '🔴'
 
 
 def login_required(f):
@@ -427,20 +441,25 @@ def explain():
     else:
         explanation = str(result)
 
+    difficulty, emoji = analyze_difficulty(explanation)
+
     new_bug = Bug(
-        language=language,
-        code=code,
-        explanation=explanation,
-        user_id=session['user_id']
-    )
+    language=language,
+    code=code,
+    explanation=explanation,
+    difficulty=difficulty,
+    user_id=session['user_id']
+)
     db.session.add(new_bug)
     db.session.commit()
 
     return jsonify({
-        'explanation': explanation,
-        'duplicate': False,
-        'similarity': 0
-    })
+    'explanation': explanation,
+    'duplicate': False,
+    'similarity': 0,
+    'difficulty': difficulty,
+    'emoji': emoji
+})
 
 
 @app.route('/explain_fresh', methods=['POST'])
@@ -478,16 +497,23 @@ def explain_fresh():
     else:
         explanation = str(result)
 
+    difficulty, emoji = analyze_difficulty(explanation)
+
     new_bug = Bug(
-        language=language,
-        code=code,
-        explanation=explanation,
-        user_id=session['user_id']
-    )
+    language=language,
+    code=code,
+    explanation=explanation,
+    difficulty=difficulty,
+    user_id=session['user_id']
+)
     db.session.add(new_bug)
     db.session.commit()
 
-    return jsonify({'explanation': explanation})
+    return jsonify({
+    'explanation': explanation,
+    'difficulty': difficulty,
+    'emoji': emoji
+})
 
 @app.route('/history')
 @login_required
@@ -499,18 +525,20 @@ def history():
 @login_required
 def statistics():
     bugs = Bug.query.filter_by(user_id=session['user_id']).all()
-    
+
     if not bugs:
-        return render_template('statistics.html', 
+        return render_template('statistics.html',
             username=session['username'],
             total=0,
-            language_stats=[])
-    
+            language_stats=[],
+            difficulty_stats={})
+
     languages = [bug.language for bug in bugs]
     total = len(languages)
     frequency = Counter(languages)
-    frequency_sorted = sorted(frequency.items(), key=lambda x: x[1], reverse=True)
-    
+    frequency_sorted = sorted(
+        frequency.items(), key=lambda x: x[1], reverse=True)
+
     language_stats = []
     for language, count in frequency_sorted:
         percentage = round((count / total) * 100, 1)
@@ -519,14 +547,23 @@ def statistics():
             'count': count,
             'percentage': percentage
         })
-    
+
     most_common = language_stats[0]['language']
-    
+
+    difficulties = [bug.difficulty for bug in bugs]
+    difficulty_frequency = Counter(difficulties)
+    difficulty_stats = {
+        'Easy': difficulty_frequency.get('Easy', 0),
+        'Medium': difficulty_frequency.get('Medium', 0),
+        'Hard': difficulty_frequency.get('Hard', 0)
+    }
+
     return render_template('statistics.html',
         username=session['username'],
         total=total,
         language_stats=language_stats,
-        most_common=most_common)
+        most_common=most_common,
+        difficulty_stats=difficulty_stats)
 
 @app.route('/search')
 @login_required

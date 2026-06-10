@@ -217,6 +217,28 @@
     margin-top: 10px;
 }
 
+
+.difficulty-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.difficulty-badge.easy {
+    background: rgba(39, 174, 96, 0.2);
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+.difficulty-badge.medium {
+    background: rgba(243, 156, 18, 0.2);
+    color: #f39c12;
+    border: 1px solid #f39c12;
+}
+.difficulty-badge.hard {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
     </style>
 </head>
 <body>
@@ -259,9 +281,18 @@
            {% for bug in bugs %}
 <div class="bug-card">
     <div class="bug-header">
-        <span class="language-badge">{{ bug.language }}</span>
+    <span class="language-badge">{{ bug.language }}</span>
+    <div style="display:flex; gap:10px; align-items:center;">
+        {% if bug.difficulty == 'Easy' %}
+            <span class="difficulty-badge easy">🟢 Easy</span>
+        {% elif bug.difficulty == 'Hard' %}
+            <span class="difficulty-badge hard">🔴 Hard</span>
+        {% else %}
+            <span class="difficulty-badge medium">🟡 Medium</span>
+        {% endif %}
         <span class="date">🕐 {{ bug.created_at.strftime('%d %b %Y, %I:%M %p') }}</span>
     </div>
+</div>
     <div class="bug-code">{{ bug.code }}</div>
     <button class="toggle-btn" onclick="toggleExplanation('bug-{{ loop.index }}')">
         💡 Show Explanation

@@ -290,7 +290,8 @@
 
         } else {
             resultCard.style.border = '1px solid rgba(233, 69, 96, 0.3)';
-            document.querySelector('.result-card h2').innerHTML = '🧠 AI Explanation';
+           document.querySelector('.result-card h2').innerHTML = 
+    '🧠 Fresh AI Explanation ' + data.emoji + ' ' + data.difficulty;
 
             let text = data.explanation;
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -349,8 +350,7 @@
         resultCard.style.display = 'block';
         resultCard.style.border = '1px solid rgba(233, 69, 96, 0.3)';
         document.querySelector('.result-card h2').innerHTML = 
-            '🧠 Fresh AI Explanation';
-
+    '🧠 AI Explanation ' + data.emoji + ' ' + data.difficulty;
         let text = data.explanation;
         text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         text = text.replace(/```[\w]*\n?([\s\S]*?)```/g,
